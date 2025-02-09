@@ -51,34 +51,24 @@
             };
             
             mediaRecorder.onstop = async () => {
-    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-    const fileName = `recording_${Date.now()}.wav`;
-
-    const formData = new FormData();
-    formData.append("audio", audioBlob, fileName);
-
-    // Upload to AWS S3
-    fetch("https://6wu6af3xok.execute-api.us-east-1.amazonaws.com", {
-        method: "POST",
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Uploaded:", data);
-        startTranscription(fileName);
-    })
-    .catch(error => console.error("Error uploading file:", error));
-};
-
-function startTranscription(fileName) {
-    fetch(`https://https://6wu6af3xok.execute-api.us-east-1.amazonaws.com/transcribe?file_name=${fileName}`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("output").value = "Transcription is processing...";
-        })
-        .catch(error => console.error("Error starting transcription:", error));
-}
-
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const fileName = `recording_${Date.now()}.wav`;
+                
+                const formData = new FormData();
+                formData.append("audio", audioBlob, fileName);
+                
+                // Upload to AWS S3
+                fetch("https://6wu6af3xok.execute-api.us-east-1.amazonaws.com/upload", {
+                    method: "POST",
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Uploaded:", data);
+                    startTranscription(fileName);
+                })
+                .catch(error => console.error("Error uploading file:", error));
+            };
             
             mediaRecorder.start();
             document.getElementById("record").disabled = true;
@@ -102,6 +92,19 @@ function startTranscription(fileName) {
             document.getElementById("pause").disabled = true;
             document.getElementById("stop").disabled = true;
         });
+        
+        function startTranscription(fileName) {
+            fetch(`https://6wu6af3xok.execute-api.us-east-1.amazonaws.com/transcribe?file_name=${fileName}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.transcription) {
+                        document.getElementById("output").value = data.transcription;
+                    } else {
+                        document.getElementById("output").value = "Transcription failed.";
+                    }
+                })
+                .catch(error => console.error("Error fetching transcription:", error));
+        }
         
         document.getElementById("copy").addEventListener("click", () => {
             const outputText = document.getElementById("output");
