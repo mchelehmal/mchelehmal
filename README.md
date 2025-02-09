@@ -58,7 +58,7 @@
     formData.append("audio", audioBlob, fileName);
 
     // Upload to AWS S3
-    fetch("https://your-api-gateway-url.amazonaws.com/upload", {
+    fetch("https://6wu6af3xok.execute-api.us-east-1.amazonaws.com", {
         method: "POST",
         body: formData,
     })
@@ -71,7 +71,7 @@
 };
 
 function startTranscription(fileName) {
-    fetch(`https://your-api-gateway-url.amazonaws.com/transcribe?file_name=${fileName}`)
+    fetch(`https://https://6wu6af3xok.execute-api.us-east-1.amazonaws.com/transcribe?file_name=${fileName}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById("output").value = "Transcription is processing...";
