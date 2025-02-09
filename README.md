@@ -51,13 +51,34 @@
             };
             
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
-                formData.append("audio", audioBlob);
-                
-                // Placeholder: Send to AWS for transcription
-                document.getElementById("output").value = "[Transcription will appear here...]";
-            };
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    const fileName = `recording_${Date.now()}.wav`;
+
+    const formData = new FormData();
+    formData.append("audio", audioBlob, fileName);
+
+    // Upload to AWS S3
+    fetch("https://your-api-gateway-url.amazonaws.com/upload", {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Uploaded:", data);
+        startTranscription(fileName);
+    })
+    .catch(error => console.error("Error uploading file:", error));
+};
+
+function startTranscription(fileName) {
+    fetch(`https://your-api-gateway-url.amazonaws.com/transcribe?file_name=${fileName}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("output").value = "Transcription is processing...";
+        })
+        .catch(error => console.error("Error starting transcription:", error));
+}
+
             
             mediaRecorder.start();
             document.getElementById("record").disabled = true;
